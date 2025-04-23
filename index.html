@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Avatar Proof of Concept</title>
+    <style>
+        /* Basic styling for centering the title */
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center horizontally */
+            padding-top: 50px; /* Add some space from the top */
+            min-height: 100vh; /* Ensure body takes full height */
+            box-sizing: border-box;
+            margin: 0; /* Remove default body margin */
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px; /* Space below the title */
+        }
+        .content-area {
+            text-align: center;
+            color: #666;
+            padding: 20px; /* Add some padding */
+            margin-bottom: 250px; /* Add space at the bottom to avoid overlap with initial avatar */
+        }
+        /* Note: The HeyGen script itself uses fixed positioning.
+           We modify its internal styles to change where it's fixed. */
+    </style>
+</head>
+<body>
+
+    <h1>Interactive Avatar Proof of Concept</h1>
+
+    <div class="content-area">
+        <p>Load the media trainer by clicking on Chat Now below.</p>
+		<p>Let the trainer introduce himself and the task.</p>
+		<p>If you start to speak, then stop, and the avatar is not responding, you can say something like: "Please continue" and it will pick up the thread.</p>
+    </div>
+
+    <script>
+    !function(window){
+        const host="https://labs.heygen.com",
+              url=host+"/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJlNTQxNTc1NTNiMDI0YmMwODVhZWU0ZGY0%0D%0AZWE4ZWQ3NiIsInByZXZpZXdJbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3Yz%0D%0AL2U1NDE1NzU1M2IwMjRiYzA4NWFlZTRkZjRlYThlZDc2L2Z1bGwvMi4yL3ByZXZpZXdfdGFyZ2V0%0D%0ALndlYnAiLCJuZWVkUmVtb3ZlQmFja2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6IjZl%0D%0AZTcxMGExOTljNDRhMjY5MDVmOTdhMzAwZWFhN2Q2IiwidXNlcm5hbWUiOiI1ZjgzZTEzODJiNDI0%0D%0AOWQ1OTI4ZWU0NjY4MjMwMjM1YSJ9&inIFrame=1",
+              // Note: clientWidth is read once here, might not be ideal for dynamic resizing logic within CSS string itself
+              clientWidth=document.body.clientWidth,
+              wrapDiv=document.createElement("div");
+        wrapDiv.id="heygen-streaming-embed";
+        const container=document.createElement("div");
+        container.id="heygen-streaming-container";
+        const stylesheet=document.createElement("style");
+
+        // --- CSS MODIFICATIONS START ---
+        stylesheet.innerHTML=`
+  /* Styles for the main avatar container */
+  #heygen-streaming-embed {
+    z-index: 9999;
+    position: fixed;
+    /* Centered horizontally */
+    left: 50%;
+    transform: translateX(-50%);
+    /* Positioned near the bottom */
+    bottom: 40px;
+    /* Initial size */
+    width: 200px;
+    height: 200px;
+    border-radius: 50%; /* Make it circular */
+    border: 2px solid #fff;
+    box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
+    transition: all linear 0.1s;
+    overflow: hidden;
+    opacity: 0; /* Initially hidden */
+    visibility: hidden;
+  }
+
+  /* Make it visible when initialized */
+  #heygen-streaming-embed.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Styles for the expanded state */
+  #heygen-streaming-embed.expand {
+    /* Centered horizontally and vertically */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    /* Take up most of the screen */
+    width: 96%; /* Use percentage for responsiveness */
+    height: 80vh; /* Use viewport height */
+    /* Optional: Add max width/height for very large screens */
+    max-width: 1000px;
+    max-height: 700px;
+    /* Override initial styles */
+    bottom: auto; /* Remove bottom positioning */
+    border: 0;
+    border-radius: 12px; /* Slightly rounded corners for expanded view */
+  }
+
+  /* Container for the iframe */
+  #heygen-streaming-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Iframe itself */
+  #heygen-streaming-container iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: inherit; /* Inherit border-radius from parent */
+  }
+  `;
+        // --- CSS MODIFICATIONS END ---
+
+        const iframe=document.createElement("iframe");
+        iframe.allowFullscreen=!1;
+        iframe.title="Streaming Embed";
+        iframe.role="dialog";
+        iframe.allow="microphone"; // Essential for interaction
+        iframe.src=url;
+
+        let visible=!1, initial=!1;
+
+        // Event listener to handle messages from the iframe (init, show, hide)
+        window.addEventListener("message",(e=>{
+            // Ensure message is from HeyGen and has the correct type
+            if (e.origin === host && e.data && e.data.type && "streaming-embed" === e.data.type) {
+                switch (e.data.action) {
+                    case "init":
+                        initial = !0;
+                        // Add 'show' class to make the initial circle visible
+                        wrapDiv.classList.toggle("show", initial);
+                        break;
+                    case "show":
+                        visible = !0;
+                        // Add 'expand' class for expanded styles
+                        wrapDiv.classList.toggle("expand", visible);
+                        break;
+                    case "hide":
+                        visible = !1;
+                        // Remove 'expand' class to return to initial state
+                        wrapDiv.classList.toggle("expand", visible);
+                        break;
+                }
+            }
+        }));
+
+        // Assemble the elements
+        container.appendChild(iframe);
+        wrapDiv.appendChild(stylesheet);
+        wrapDiv.appendChild(container);
+        // Add the whole thing to the page body
+        document.body.appendChild(wrapDiv);
+
+    }(globalThis); // Pass window object (or globalThis for wider compatibility)
+    </script>
+    </body>
+</html>
