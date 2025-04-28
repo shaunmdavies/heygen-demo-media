@@ -4,128 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Avatar Proof of Concept</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Basic styling for centering the title */
+        /* Basic body styling */
         body {
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center horizontally */
-            padding-top: 50px; /* Add some space from the top */
-            min-height: 100vh; /* Ensure body takes full height */
+            font-family: 'Lato', sans-serif; /* Use Lato font */
+            background-color: #f8f9fa; /* Light grey background */
+            padding-top: 40px; /* Adjust top padding */
+            min-height: 100vh;
             box-sizing: border-box;
-            margin: 0; /* Remove default body margin */
+            margin: 0;
+            color: #333; /* Default text color */
         }
+
+        /* Container for main content */
+        .main-container {
+            max-width: 850px; /* Max width for content */
+            width: 90%; /* Responsive width */
+            margin: 0 auto; /* Center the container */
+            text-align: center; /* Center title */
+            padding-bottom: 300px; /* Space for the avatar button */
+        }
+
+        /* Main title */
         h1 {
-            color: #333;
-            margin-bottom: 30px; /* Space below the title */
+            color: #0056b3; /* Accent color blue */
+            margin-bottom: 40px; /* Space below the title */
+            font-weight: 700;
         }
+
+        /* Content area card styling */
         .content-area {
-            text-align: center;
-            color: #666;
-            padding: 20px; /* Add some padding */
-            margin-bottom: 250px; /* Add space at the bottom to avoid overlap with initial avatar */
+            background-color: #ffffff; /* White card background */
+            color: #555; /* Slightly softer text color */
+            padding: 30px 40px; /* Padding inside the card */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+            margin-top: 30px; /* Space below H1 */
+            text-align: left; /* Align text left within card */
         }
-        /* Note: The HeyGen script itself uses fixed positioning.
-           We modify its internal styles to change where it's fixed. */
+
+        /* Section headings */
+        .content-area h2 {
+            color: #0056b3; /* Accent color blue */
+            margin-top: 25px; /* Space above headings (first one adjusted below)*/
+            margin-bottom: 15px; /* Space below headings */
+            font-size: 1.3em; /* Heading size */
+            font-weight: 700;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee; /* Subtle separator line */
+        }
+        .content-area h2:first-of-type {
+             margin-top: 0; /* Remove top margin for the first heading */
+        }
+
+        /* Paragraph styling */
+        .content-area p {
+            line-height: 1.65; /* Improve readability */
+            margin-bottom: 15px; /* Space below paragraphs */
+        }
+
+        /* List styling for instructions */
+        .content-area ul {
+            list-style: disc;
+            padding-left: 25px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .content-area ul li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        /* --- HEYGEN AVATAR STYLES (Moved from script) --- */
+
+        /* Styles for the main avatar container */
+        #heygen-streaming-embed {
+            z-index: 9999;
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
+            bottom: 40px; /* Position near the bottom */
+            width: 180px; /* Slightly smaller initial size */
+            height: 180px;
+            border-radius: 50%; /* Make it circular */
+            border: 3px solid #0056b3; /* Accent color border */
+            box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s ease-in-out; /* Smoother transition */
+            overflow: hidden;
+            opacity: 0; /* Initially hidden */
+            visibility: hidden;
+            cursor: pointer; /* Add pointer cursor */
+        }
+
+        /* Hover effect for the initial circle */
+        #heygen-streaming-embed:not(.expand):hover {
+            transform: translateX(-50%) scale(1.05); /* Slightly larger on hover */
+            box-shadow: 0px 12px 30px 0px rgba(0, 0, 0, 0.18); /* Enhanced shadow */
+        }
+
+        /* Make it visible when initialized */
+        #heygen-streaming-embed.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Styles for the expanded state */
+        #heygen-streaming-embed.expand {
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%); /* Center fully */
+            width: 94%; /* Use percentage for responsiveness */
+            height: 85vh; /* Use viewport height */
+            max-width: 1000px;
+            max-height: 750px; /* Adjusted max height */
+            bottom: auto; /* Remove bottom positioning */
+            border: 0; /* Remove border in expanded view */
+            border-radius: 12px; /* Slightly rounded corners for expanded view */
+            box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.2); /* Stronger shadow when expanded */
+            cursor: default; /* Default cursor when expanded */
+        }
+
+        /* Container for the iframe */
+        #heygen-streaming-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Iframe itself */
+        #heygen-streaming-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: inherit; /* Inherit border-radius from parent */
+        }
+        /* --- END HEYGEN AVATAR STYLES --- */
+
     </style>
 </head>
 <body>
 
-    <h1>Interactive Avatar Proof of Concept</h1>
+    <div class="main-container">
+        <h1>Interactive Avatar Proof of Concept</h1>
 
-    <div class="content-area">
-        <p><b>Instructions</b></p>
-        <p>Load the media trainer by clicking on Chat Now below.</p>
-		<p>Let the trainer introduce himself and the task. When you are ready to start, say "I'm ready".</p>
-		<p>If the trainer stops responding, you can say something like: "Please continue" and it will pick up the thread.</p>
-	    <p>The trainer is sensitive to background noise, particularly voices. This is best done in a quiet room.</p>
-        <p>If you can't be in a quiet room, mute your microphone when you're not speaking.</p>
-	    <p>If you are ready to finish, simply say "stop and give me my feedback".</p>
-        <p></p>
-        <p><b>Scenario</b></p>
-        <p>Imagine you are the Head of Customer Service for the Commonwealth Bank in late December 2024. 
-        <p>The bank has announced a new $3 "assisted withdrawal fee" for customers with "Complete Access" accounts who choose to withdraw money in person at a branch, Bank@Post, or via phone.</p> 
-        <p>While the bank positioned this as reflecting the cost of over-the-counter service and offered exemptions for certain vulnerable groups, the announcement has triggered an immediate and intense wave of negative media coverage and public outcry.</p> 
-        <p>Critics are labeling the fee as unfair and out-of-touch, especially during the holiday season, and there are reports of customers threatening to close their accounts.</p>
-        <p>You have been asked to front the tabloid news program A Current Affair to explain the bank's actions.</p>
+        <div class="content-area">
+            <h2>Instructions: PLEASE READ</h2>
+            <ul>
+                <li>Load the media trainer by clicking the circular chat button below.</li>
+                <li>Say "Start" and the trainer will introduce himself. When you are ready to begin the interview, say "I'm ready".</li>
+                <li>If the trainer stops responding, you can say something like: "Please continue" and it will pick up the thread.</li>
+                <li>The trainer is sensitive to background noise, particularly voices. This is best done in a quiet room.</li>
+                <li>If you can't be in a quiet room, mute your microphone when you're not speaking.</li>
+                <li>If you are ready to finish, simply say "stop and give me my feedback".</li>
+            </ul>
 
+            <h2>Scenario</h2>
+            <p>Imagine you are the Head of Customer Service for the Commonwealth Bank in late December 2024.</p>
+            <p>The bank has announced a new $3 "assisted withdrawal fee" for customers with "Complete Access" accounts who choose to withdraw money in person at a branch, Bank@Post, or via phone.</p>
+            <p>While the bank positioned this as reflecting the cost of over-the-counter service and offered exemptions for certain vulnerable groups, the announcement has triggered an immediate and intense wave of negative media coverage and public outcry.</p>
+            <p>Critics are labeling the fee as unfair and out-of-touch, especially during the holiday season, and there are reports of customers threatening to close their accounts.</p>
+            <p>You have been asked to front the tabloid news program A Current Affair to explain the bank's actions.</p>
+        </div>
     </div>
 
     <script>
     !function(window){
         const host="https://labs.heygen.com",
               url=host+"/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJlNTQxNTc1NTNiMDI0YmMwODVhZWU0ZGY0%0D%0AZWE4ZWQ3NiIsInByZXZpZXdJbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3Yz%0D%0AL2U1NDE1NzU1M2IwMjRiYzA4NWFlZTRkZjRlYThlZDc2L2Z1bGwvMi4yL3ByZXZpZXdfdGFyZ2V0%0D%0ALndlYnAiLCJuZWVkUmVtb3ZlQmFja2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6IjZl%0D%0AZTcxMGExOTljNDRhMjY5MDVmOTdhMzAwZWFhN2Q2IiwidXNlcm5hbWUiOiI1ZjgzZTEzODJiNDI0%0D%0AOWQ1OTI4ZWU0NjY4MjMwMjM1YSJ9&inIFrame=1",
-              // Note: clientWidth is read once here, might not be ideal for dynamic resizing logic within CSS string itself
-              clientWidth=document.body.clientWidth,
+              clientWidth=document.body.clientWidth, // Note: clientWidth usage removed, kept variable for potential future use
               wrapDiv=document.createElement("div");
         wrapDiv.id="heygen-streaming-embed";
         const container=document.createElement("div");
         container.id="heygen-streaming-container";
-        const stylesheet=document.createElement("style");
+        // const stylesheet=document.createElement("style"); // Removed stylesheet creation in JS
 
-        // --- CSS MODIFICATIONS START ---
-        stylesheet.innerHTML=`
-  /* Styles for the main avatar container */
-  #heygen-streaming-embed {
-    z-index: 9999;
-    position: fixed;
-    /* Centered horizontally */
-    left: 50%;
-    transform: translateX(-50%);
-    /* Positioned near the bottom */
-    bottom: 40px;
-    /* Initial size */
-    width: 200px;
-    height: 200px;
-    border-radius: 50%; /* Make it circular */
-    border: 2px solid #fff;
-    box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
-    transition: all linear 0.1s;
-    overflow: hidden;
-    opacity: 0; /* Initially hidden */
-    visibility: hidden;
-  }
-
-  /* Make it visible when initialized */
-  #heygen-streaming-embed.show {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  /* Styles for the expanded state */
-  #heygen-streaming-embed.expand {
-    /* Centered horizontally and vertically */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    /* Take up most of the screen */
-    width: 96%; /* Use percentage for responsiveness */
-    height: 80vh; /* Use viewport height */
-    /* Optional: Add max width/height for very large screens */
-    max-width: 1000px;
-    max-height: 700px;
-    /* Override initial styles */
-    bottom: auto; /* Remove bottom positioning */
-    border: 0;
-    border-radius: 12px; /* Slightly rounded corners for expanded view */
-  }
-
-  /* Container for the iframe */
-  #heygen-streaming-container {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Iframe itself */
-  #heygen-streaming-container iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    border-radius: inherit; /* Inherit border-radius from parent */
-  }
-  `;
-        // --- CSS MODIFICATIONS END ---
+        // --- CSS NO LONGER DEFINED HERE - MOVED TO <head><style> ---
+        // stylesheet.innerHTML = `...`; // Removed
 
         const iframe=document.createElement("iframe");
         iframe.allowFullscreen=!1;
@@ -162,12 +218,12 @@
 
         // Assemble the elements
         container.appendChild(iframe);
-        wrapDiv.appendChild(stylesheet);
+        // wrapDiv.appendChild(stylesheet); // Removed stylesheet appending
         wrapDiv.appendChild(container);
         // Add the whole thing to the page body
         document.body.appendChild(wrapDiv);
 
     }(globalThis); // Pass window object (or globalThis for wider compatibility)
     </script>
-    </body>
+</body>
 </html>
